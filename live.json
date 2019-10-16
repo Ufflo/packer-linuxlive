@@ -1,0 +1,75 @@
+{
+    "variables": {
+        "iso_local": "iso/ubuntu-18.04.3-server-amd64.iso",
+        "iso_remote": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.3-server-amd64.iso",
+        "iso_checksum_type": "sha256",
+        "iso_checksum": "7D8E0055D663BFFA27C1718685085626CB59346E7626BA3D3F476322271F573E",
+        "vm_disk": "10240",
+        "vm_cpus": "8",
+        "vm_memory": "8192",
+        "vm_guest_type": "Ubuntu_64",
+        "boot_wait": "10s"
+    },
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "vm_name": "LinuxLive",
+            "guest_os_type": "{{user `vm_guest_type`}}",
+            "disk_size": "{{user `vm_disk`}}",
+            "vboxmanage": [
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--cpus",
+                    "{{user `vm_cpus`}}"
+                ],
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--memory",
+                    "{{user `vm_memory`}}"
+                ]
+            ],
+            "iso_urls": [
+                "{{user `iso_local`}}",
+                "{{user `iso_remote`}}"
+            ],
+            "iso_checksum_type": "{{user `iso_checksum_type`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "headless": false,
+            "boot_wait": "{{user `boot_wait`}}",
+            "http_directory": "http",
+            "boot_command": [
+                "<esc><wait>",
+                "<esc><wait>",
+                "<enter><wait>",
+                "/install/vmlinuz",
+                " initrd=/install/initrd.gz",
+                " auto=true",
+                " priority=critical",
+                " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+                " -- <wait>",
+                "<enter><wait>"
+            ],
+            "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+            "virtualbox_version_file": ".vbox_version",
+            "ssh_wait_timeout": "3600s",
+            "ssh_username": "vagrant",
+            "ssh_password": "vagrant",
+            "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+            "keep_registered": true,
+            "skip_export": true
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+            "script": "scripts/linux_live_kit.sh"
+        },
+        {
+            "type": "shell",
+            "inline": ["sleep 3600"]
+        }
+    ]
+}

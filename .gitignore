@@ -1,4 +1,6 @@
-# Cache objects
+# Folders to exclude
+iso/
+output-virtualbox-iso
 packer_cache/
 
 # For built boxes
